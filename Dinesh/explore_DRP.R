@@ -18,8 +18,8 @@ library(gbm)
 library(earth)
 
 
-train_data <- read.csv("../Data/train.csv")
-test_data <- read.csv("../Data/test.csv")
+train_data <- read.csv("./Data/train.csv")
+test_data <- read.csv("./Data/test.csv")
 
 train_data$date <- ymd(train_data$date)
 
