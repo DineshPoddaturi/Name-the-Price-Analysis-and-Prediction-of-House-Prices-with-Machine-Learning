@@ -42,7 +42,7 @@ trainData%>%glimpse()
 ggcorrplot(cor(trainData), p.mat = cor_pmat(trainData), hc.order=TRUE, type='lower')
 
 
-detach("package:MASS", unload=TRUE)
+# detach("package:MASS", unload=TRUE)
 
 
 train_data <- train_data%>%select(property,price,date,bedrooms:sqft_lot15)%>%as.data.frame()
@@ -51,7 +51,7 @@ train_data <- train_data %>% select(price:sqft_lot15)
 
 
 
-priceplot <- ggplot(data = train_data,aes(x=price))+geom_histogram(fill="Green")+
+priceplot <- ggplot(data = train_data,aes(x=price))+geom_histogram(fill="Grey")+
   scale_x_continuous(breaks= seq(min(train_data$price), max(train_data$price), by=1000000))
 #from the plot we can see that most of the houses are between 75000 and 1075000.
 
@@ -540,7 +540,7 @@ NNET_prediction_plot <- ggplot(data=NNETPrediction,aes(x=train_housePrice,
 
 
 # randomly break sample into 10 folds
-shuffle<- sample(dim(house_train)[1])
+shuffle <- sample(dim(house_train)[1])
 folds<- list()
 for (i in 1:10){
   if (i != 10){
