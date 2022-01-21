@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1642778695986.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "491BB946",
+    "lastKnownWriteTime" : 1642790147,
+    "last_content_update" : 1642790147882,
+    "path" : "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices/SupervisedLearning.R",
+    "project_path" : "SupervisedLearning.R",
+    "properties" : {
+        "cursorPosition" : "145,88",
+        "scrollLine" : "141",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

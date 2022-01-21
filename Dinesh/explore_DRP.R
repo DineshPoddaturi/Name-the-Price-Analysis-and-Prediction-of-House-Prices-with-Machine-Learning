@@ -31,15 +31,15 @@ test_data %>% glimpse()
 
 train_data%>%glimpse()
 
-trainData <- train_data %>%select(-property,-date)
-trainData$waterfront <- as.factor(trainData$waterfront)
-trainData$condition <- as.factor(trainData$condition)
+# trainData <- train_data %>%select(-property,-date)
+# trainData$waterfront <- as.factor(trainData$waterfront)
+# trainData$condition <- as.factor(trainData$condition)
 
 library(ggcorrplot)
 
 
-trainData%>%glimpse()
-ggcorrplot(cor(trainData), p.mat = cor_pmat(trainData), hc.order=TRUE, type='lower')
+# trainData%>%glimpse()
+# ggcorrplot(cor(trainData), p.mat = cor_pmat(trainData), hc.order=TRUE, type='lower')
 
 
 # detach("package:MASS", unload=TRUE)
@@ -316,7 +316,7 @@ write.csv(lmPrediction_housePrice,file="Prediction_regression.csv")
 
 
 ############## kNN Prediction
-knnTune_housePrice<- train(y=house_train[,1],x=house_train[,2:13],
+knnTune_housePrice <- train(y=house_train[,1],x=house_train[,2:13],
                              method="knn",
                              preProcess = c("center","scale"),
                              tuneGrid=data.frame(.k=1:20),
