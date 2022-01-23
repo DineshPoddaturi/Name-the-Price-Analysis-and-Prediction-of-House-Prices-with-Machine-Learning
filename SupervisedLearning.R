@@ -146,18 +146,108 @@ knnTune_housePrice <- train(y = house_train[,1], x = house_train[,2:13],
                             trControl = trainControl(method = "repeatedcv", repeats = 20, number = 10))
 
 ##### I standardize the data and perform repeated cross validation. Basically I perform 10-fold cross validation
-##### repeated 100 times. I am also asking the algorithm to try values of k from 1 to 20.
+##### with repetition (Note: As the number of repetitions increase, the execution time also increases). 
+##### I am also asking the algorithm to try values of k from 1 to 20.
 
+plot(knnTune_housePrice)
 knnTune_housePrice$bestTune
+#### From the plot and bestTune above, the model selected k = 4
 knnTune_housePrice$results
 
 
+########################################################################################################
+####################################### USING NEURAL NETS ##############################################
+########################################################################################################
+
+nnet.grid <- expand.grid(size = seq(from = 1, to = 5, length.out = 5),
+                         decay = seq(from = .3, to = .8, length.out = 6))
+
+# Size is the number of units in hidden layer (nnet fit a single hidden layer neural network) 
+# and decay is the regularization parameter to avoid over-fitting.
+
+nnetTune_housePrice <- train(y = house_train[,1], x = house_train[,2:13],
+                           method = "nnet", trace = FALSE,
+                           preProc = c("center","scale"),
+                           linout = TRUE, tuneGrid = nnet.grid,
+                           maxit = 50,
+                           trControl = trainControl(method = "repeatedcv", repeats = 2, number = 10) )
+
+plot(nnetTune_housePrice)
+
+nnetTune_housePrice$bestTune
+
+nnetTune_housePrice$results
+
+
+########################################################################################################
+####################################### USING MULTIPLE LINEAR REGRESSION ###############################
+########################################################################################################
+
+lmTune_housePrice <- train(housePrice~., data = house_train,
+                           method = "lm",
+                           trControl = trainControl(method = "repeatedcv",
+                                                  repeats = 2, number = 10))
+
+lmTune_housePrice$results
+
+
+
+########################################################################################################
+####################################### USING RANDOM FOREST ############################################
+########################################################################################################
+designMat <- model.matrix(lm(housePrice~.,data=house_train))
+designMat <- designMat[,-1]
+
+forestTune_housePrice <- train(y = house_train[,1], x = designMat,
+                             tuneGrid = data.frame(mtry=1:100),
+                             method = "rf", ntree = 500,
+                             trControl = trainControl(method="oob"))
+
+
+
+
+
+########################################################################################################
+####################################### USING TREE #####################################################
+########################################################################################################
+
+TreeTune_housePricing <- train(y = house_train[,1], x = house_train[,2:13],
+                             method = "rpart", tuneGrid = data.frame(cp = seq(from = .0001, to = .1, length.out = 50)),
+                             trControl = trainControl(method = "repeatedcv",repeats = 2, number = 10))
+
+
+
+
+########################################################################################################
+####################################### USING Gradient Boosting Machine ################################
+########################################################################################################
+gbm.grid <- expand.grid(n.trees = seq(from = 120, to = 160, length.out = 3),
+                        interaction.depth = seq(1,5),
+                        shrinkage = seq(from = .05, to = 0.2, length.out = 3),
+                        n.minobsinnode = seq(from = 7, to = 12, length.out = 3))
+
+cv.control_house <- trainControl(method = "repeatedcv", repeats = 2, number = 10)
+
+GbmTune_housePricing<-train(y = house_train[,1], x = house_train[,2:13], tuneGrid = gbm.grid,
+                            method = "gbm",
+                            trControl = cv.control_house)
 
 
 
 
 
 
+########################################################################################################
+####################################### USING eXtreme Gradient BOOSTing ################################
+########################################################################################################
+
+xgbTune_housePrice<- train(y = house_train[,1], x = house_train[,2:13],
+                           method = "xgbTree",
+                           trControl = trainControl(method="repeatedcv", repeats = 2, number = 10))
+
+xgbTune_housePrice$bestTune
+
+xgbTune_housePrice$results
 
 
 

@@ -381,7 +381,6 @@ write.csv(xgBoostPrediction_housePrice,file="Prediction_xgboost.csv")
 dummyMat <- model.matrix(lm(housePrice~.,data=house_train))
 dummyMat <- dummyMat[,-1]
 
-
 ForestTune_housePrice<-train(y=house_train[,1],x=dummyMat,
                              tuneGrid=data.frame(mtry=1:100),
                            method="rf",ntree=500,
