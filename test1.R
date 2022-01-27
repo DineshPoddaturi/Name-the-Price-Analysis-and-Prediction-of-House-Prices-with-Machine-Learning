@@ -16,8 +16,8 @@ require(corrplot) # correlation plot
 
 setwd("~/Dropbox/Spring 2018/Stat502/stat502_project/Xiyuan")
 
-train=read.csv("./Data/train.csv")
-test = read.csv("./Data/test.csv")
+train=read.csv("~/Dropbox/Spring 2018/Stat502/stat502_project/Data/train.csv")
+test = read.csv("~/Dropbox/Spring 2018/Stat502/stat502_project/Data/test.csv")
 
 #na.cols <- which(colSums(is.na(train)) > 0) No NAs
 
@@ -65,7 +65,6 @@ train['yr_sold'] = as.numeric(substr(train$date, 1, 4))
 train['NewHouse'] <- (train$yr_built == train$yr_sold) * 1
 
 plot(x=train$NewHouse, y=train$price)
-
 
 
 
