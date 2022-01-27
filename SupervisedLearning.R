@@ -64,22 +64,42 @@ impVar_lm
 ### important variables. However, all the other variables seem important too. 
 
 # I am using XG boost to further analyze variable importance 
-designX <- train_data %>% select(-price)
-xgBoost_fit <- xgboost(data.matrix(designX), train_data$price, nrounds=800)
-xgBoost_Imp <- xgb.importance(model = xgBoost_fit, feature_names = names(designX))
-xgBoost_Imp
+# designX <- train_data %>% select(-price)
+# xgBoost_fit <- xgboost(data.matrix(designX), train_data$price, nrounds=800)
+# xgBoost_Imp <- xgb.importance(model = xgBoost_fit, feature_names = names(designX))
+# xgBoost_Imp
 ### The XG boost selectd sqft_living, grade, lat, long, sqft_living15, yr_built, and waterfront as the 
 ### most important variables
+# xgBoost_Imp
+# Feature        Gain       Cover   Frequency
+# 1:   sqft_living 0.342766579 0.080952848 0.105720569
+# 2:         grade 0.281494710 0.016340344 0.020216740
+# 3:           lat 0.154047844 0.161911073 0.121803874
+# 4:          long 0.059350082 0.090955113 0.086749159
+# 5: sqft_living15 0.028514173 0.093267398 0.083808060
+# 6:      yr_built 0.028293888 0.065392241 0.068811107
+# 7:    waterfront 0.026511502 0.002898349 0.000900877
+# 8:          view 0.016122752 0.005884459 0.008505339
+# 9:    sqft_above 0.015441194 0.084794264 0.066664900
+# 10:      sqft_lot 0.010513967 0.135272838 0.125486871
+# 11:       zipcode 0.010247276 0.028953751 0.044566917
+# 12:    sqft_lot15 0.007177084 0.135922821 0.089663761
+# 13: sqft_basement 0.004845246 0.035933456 0.031530696
+# 14:      bedrooms 0.004534543 0.011543024 0.052621817
+# 15:     bathrooms 0.004318820 0.017579433 0.061259638
+# 16:     condition 0.003319069 0.012581875 0.015712355
+# 17:  yr_renovated 0.001492976 0.014274313 0.005325773
+# 18:        floors 0.001008294 0.005542399 0.010651546
 
 #### I am also using Boruta feature selection algorithm to determine the variable importance
-boruta_fit <- Boruta(price~. , data = train_data , doTrace = 2)
+# boruta_fit <- Boruta(price~. , data = train_data , doTrace = 2)
 
-print(boruta_fit)
+# print(boruta_fit)
 # Boruta performed 68 iterations in 15.85281 mins.
 # 18 attributes confirmed important: bathrooms,
 # bedrooms, condition, floors, grade and 13 more;
 # No attributes deemed unimportant.
-plot(boruta_fit)
+# plot(boruta_fit)
 
 colMeans(boruta_fit$ImpHistory)
 
