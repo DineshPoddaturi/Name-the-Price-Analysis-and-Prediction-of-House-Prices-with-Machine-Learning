@@ -248,11 +248,6 @@ GbmTune_housePricing<-train(y = house_train[,1], x = house_train[,2:13], tuneGri
                             method = "gbm",
                             trControl = cv.control_house)
 
-
-
-
-
-
 ########################################################################################################
 ####################################### USING eXtreme Gradient BOOSTing ################################
 ########################################################################################################
@@ -264,9 +259,6 @@ xgbTune_housePrice<- train(y = house_train[,1], x = house_train[,2:13],
 xgbTune_housePrice$bestTune
 
 xgbTune_housePrice$results
-
-
-
 
 
 
