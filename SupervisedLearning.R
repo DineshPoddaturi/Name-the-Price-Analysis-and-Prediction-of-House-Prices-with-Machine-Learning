@@ -325,7 +325,7 @@ TreeTune_housePricing$bestTune
 ########################################################################################################
 ####################################### USING Gradient Boosting Machine ################################
 ########################################################################################################
-gbm.grid <- expand.grid(n.trees = seq(from = 120, to = 160, length.out = 3),
+gbm.grid <- expand.grid(n.trees = seq(from = 120, to = 180, length.out = 6),
                         interaction.depth = seq(1,5),
                         shrinkage = seq(from = .05, to = 0.2, length.out = 3),
                         n.minobsinnode = seq(from = 7, to = 12, length.out = 3))
@@ -336,17 +336,49 @@ GbmTune_housePricing <- train(y = house_train[,1], x = house_train[,2:13], tuneG
                             method = "gbm",
                             trControl = cv.control_house)
 
+gbm_BestTune <- GbmTune_housePricing$bestTune
+# n.trees interaction.depth shrinkage n.minobsinnode
+# 180                 5      0.05              7
+
+plot(GbmTune_housePricing)
+
+### from the plot it is clear that the tree depths 2, 3, 4, and 5 perform fairly similar with 5 being the dominant one
+### Shrinkage 0.050 is the dominant one to give minimum RMSE
+### I believe the more the number of trees the more RMSE decrease. However when I closely look at the RMSE after 160 trees they all are converging.
+
+
 ########################################################################################################
 ####################################### USING eXtreme Gradient BOOSTing ################################
 ########################################################################################################
 
-xgbTune_housePrice<- train(y = house_train[,1], x = house_train[,2:13],
+designMatXGB <- model.matrix(lm(housePrice~.,data=house_train))
+designMatXGB <- designMat[,-1]
+
+# set up the cross-validated hyper-parameter search
+xgb_grid <- expand.grid(eta = seq(from = 0.01, to = 0.2, length.out = 3),
+                        max_depth = seq(from = 3, to = 10, length.out = 3),
+                        colsample_bytree = seq (from = 0.5, to = 1, length.out = 3),
+                        nrounds = seq(from = 100, to = 500, length.out = 3),
+                        gamma = 0,  min_child_weight = 1,
+                        subsample = seq(from = 0.5, to = 1, length.out = 3))
+
+xgbTune_housePrice <- train(y = house_train[,1], x = designMatXGB,
                            method = "xgbTree",
-                           trControl = trainControl(method="repeatedcv", repeats = 2, number = 10))
+                           trControl = trainControl(method="repeatedcv", repeats = 2, number = 10),
+                           tuneGrid = xgb_grid)
 
-xgbTune_housePrice$bestTune
+xgbTune_housePrice <- train(y = house_train[,1], x = designMatXGB,
+                            method = "xgbTree",
+                            trControl = trainControl(method="repeatedcv", repeats = 2, number = 10))
 
-xgbTune_housePrice$results
+xgbBestTune <- xgbTune_housePrice$bestTune
+
+xgbresults <- xgbTune_housePrice$results
+
+plot(xgbTune_housePrice)
+
+
+
 
 
 
