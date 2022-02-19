@@ -194,9 +194,11 @@ nnetTune_housePrice <- train(y = house_train[,1], x = house_train[,2:13],
 
 plot(nnetTune_housePrice)
 
-nnetTune_housePrice$bestTune
+nnetBestTune <- nnetTune_housePrice$bestTune
+# size decay
+# 27    5   0.5
 
-nnetTune_housePrice$results
+nnetResults <- nnetTune_housePrice$results
 
 
 ########################################################################################################
@@ -208,7 +210,9 @@ lmTune_housePrice <- train(housePrice~., data = house_train,
                            trControl = trainControl(method = "repeatedcv",
                                                   repeats = 2, number = 10))
 
-lmTune_housePrice$results
+lmBestTune <- lmTune_housePrice$bestTune
+
+lmResults <- lmTune_housePrice$results
 
 
 ########################################################################################################
@@ -217,9 +221,9 @@ lmTune_housePrice$results
 
 
 designMat <- model.matrix(lm(housePrice~.,data=house_train))
-designMat <- designMat[,-1]
+designMatRF <- designMat[,-1]
 
-forestTune_housePrice <- train(y = house_train[,1], x = designMat,
+forestTune_housePrice <- train(y = house_train[,1], x = designMatRF,
                              tuneGrid = data.frame(mtry=1:50),
                              method = "rf", ntree = 150,
                              trControl = trainControl(method="oob"))
@@ -235,7 +239,7 @@ forestTune_housePrice <- train(y = house_train[,1], x = designMat,
 
 plot(forestTune_housePrice)
 
-forestTune_housePrice
+forestResults <- forestTune_housePrice
 # Random Forest 
 # 
 # 10000 samples
@@ -301,7 +305,7 @@ forestTune_housePrice
 # The final value used for the model was mtry
 # = 38.
 
-forestTune_housePrice$bestTune
+firestBestTune <- forestTune_housePrice$bestTune
 #     mtry
 # 38   38
 
@@ -318,7 +322,7 @@ TreeTune_housePricing <- train(y = house_train[,1], x = house_train[,2:13],
 
 plot(TreeTune_housePricing)
 
-TreeTune_housePricing$bestTune
+treeBestTune <- TreeTune_housePricing$bestTune
 # cp (complexity parameter)
 # 1 1e-04
 
@@ -336,7 +340,7 @@ GbmTune_housePricing <- train(y = house_train[,1], x = house_train[,2:13], tuneG
                             method = "gbm",
                             trControl = cv.control_house)
 
-gbm_BestTune <- GbmTune_housePricing$bestTune
+gbmBestTune <- GbmTune_housePricing$bestTune
 # n.trees interaction.depth shrinkage n.minobsinnode
 # 180                 5      0.05              7
 
@@ -376,6 +380,162 @@ xgbBestTune <- xgbTune_housePrice$bestTune
 xgbresults <- xgbTune_housePrice$results
 
 plot(xgbTune_housePrice)
+
+
+########################################################################################################
+####################################### USING Elastic Net ##############################################
+########################################################################################################
+
+designMatENET <- model.matrix(lm(housePrice~.,data=house_train))
+designMatENET <- designMat[,-1]
+
+Enet_grid <- expand.grid(alpha = seq(0,.5,length.out=15),
+                               lambda = seq(10,500,length.out=15))
+
+ENetTune_housePrice <- train(y = house_train[,1], x = designMatENET,
+                           method = "glmnet", tuneGrid = Enet_grid,
+                           trControl = trainControl(method="repeatedcv", repeats = 2, number = 10))
+
+ENetBestTune <- ENetTune_housePrice$bestTune
+#         alpha lambda
+# 30 0.03571429    500
+
+ENetResults <- ENetTune_housePrice$results
+
+plot(ENetTune_housePrice)
+
+
+########################################################################################################
+####################################### USING Principal Component Regression ###########################
+########################################################################################################
+# NOTE: PCR is based on principal component analysis (PCA)
+
+designMatPCR <- model.matrix(lm(housePrice~.,data=house_train))
+designMatPCR <- designMat[,-1]
+
+pcrTune_housePrice <- train(y = house_train[,1], x = designMatPCR,
+                            method = "pcr",
+                            preProcess = c("center","scale"),
+                            trControl = trainControl(method = "repeatedcv", repeats = 2, number = 10),
+                            tuneLength = 120)
+
+pcrBestTune <- pcrTune_housePrice$bestTune
+# ncomp
+# 83    83
+pcrResults <- pcrTune_housePrice$results
+
+plot(pcrTune_housePrice)
+
+########################################################################################################
+####################################### USING Partial Least Squares ####################################
+########################################################################################################
+
+designMatPLS <- model.matrix(lm(housePrice~.,data=house_train))
+designMatPLS <- designMat[,-1]
+
+plsTune_housePrice <- train(y = house_train[,1], x = designMatPLS,
+                            method = "pls",
+                            preProcess = c("center","scale"),
+                            trControl = trainControl(method = "repeatedcv", repeats = 2, number = 10),
+                            tuneLength = 120)
+
+plsBestTune <- plsTune_housePrice$bestTune
+# ncomp
+# 22    22
+
+plsResults <- plsTune_housePrice$results
+
+plot(plsTune_housePrice)
+
+########################################################################################################
+######### Here I use the best tunes from above to predict the training set #############################
+########################################################################################################
+
+train_housePrice <- house_train$housePrice
+
+### Using Neural Net best tune to predict the training data house price
+NNET_housePrice <- predict(nnetTune_housePrice, house_train)
+nnetPrediction <- cbind(train_housePrice, NNET_housePrice)%>%as.data.frame()
+NNET_prediction_plot <- ggplot(data = nnetPrediction, aes(x = train_housePrice,
+                                                     y = NNET_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+### Using k Nearest Neighbor best tune to predict the training data house price
+KNN_housePrice <- predict(knnTune_housePrice,house_train)
+knnPrediction <- cbind(train_housePrice,KNN_housePrice)%>%as.data.frame()
+KNN_prediction_plot <- ggplot(data = knnPrediction, aes(x = train_housePrice,
+                                                         y = KNN_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+### Using multiple linear regression best tune to predict the training data house price
+LM_housePrice <- predict(lmTune_housePrice,house_train)
+lmPrediction <- cbind(train_housePrice,LM_housePrice) %>% as.data.frame()
+LM_prediction_plot <- ggplot(data = lmPrediction, aes(x = train_housePrice,
+                                                        y = LM_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+### Using random forest best tune to predict the training data house price
+RF_housePrice <- predict(forestTune_housePrice,designMatRF)
+rfPrediction <- cbind(train_housePrice,RF_housePrice) %>% as.data.frame()
+RF_prediction_plot <- ggplot(data = rfPrediction, aes(x = train_housePrice,
+                                                      y = RF_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+### Using tree best tune to predict the training data house price
+TREE_housePrice <- predict(TreeTune_housePricing,house_train)
+treePrediction <- cbind(train_housePrice,TREE_housePrice) %>% as.data.frame()
+TREE_prediction_plot <- ggplot(data = treePrediction, aes(x = train_housePrice,
+                                                      y = TREE_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+### Using Gradient Boosting Machine best tune to predict the training data house price
+GBM_housePrice <- predict(GbmTune_housePricing,house_train)
+gbmPrediction <- cbind(train_housePrice,GBM_housePrice) %>% as.data.frame()
+GBM_prediction_plot <- ggplot(data = gbmPrediction, aes(x = train_housePrice,
+                                                          y = GBM_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+### Using eXtreme Gradient Boosting Machine best tune to predict the training data house price
+XGB_housePrice <- predict(xgbTune_housePrice,designMatXGB)
+xgbPrediction <- cbind(train_housePrice,XGB_housePrice) %>% as.data.frame()
+XGB_prediction_plot <- ggplot(data = xgbPrediction, aes(x = train_housePrice,
+                                                        y = XGB_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+### Using Elastic Net best tune to predict the training data house price
+ENET_housePrice <- predict(ENetTune_housePrice,designMatENET)
+enetPrediction <- cbind(train_housePrice,ENET_housePrice) %>% as.data.frame()
+ENET_prediction_plot <- ggplot(data = enetPrediction, aes(x = train_housePrice,
+                                                        y = ENET_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+### Using Principal Component Regression best tune to predict the training data house price
+PCR_housePrice <- predict(pcrTune_housePrice,designMatPCR)
+pcrPrediction <- cbind(train_housePrice,PCR_housePrice) %>% as.data.frame()
+PCR_prediction_plot <- ggplot(data = pcrPrediction, aes(x = train_housePrice,
+                                                          y = PCR_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+### Using Partial Least Squares best tune to predict the training data house price
+PLS_housePrice <- predict(plsTune_housePrice,designMatPLS)
+plsPrediction <- cbind(train_housePrice,PLS_housePrice) %>% as.data.frame()
+PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
+                                                        y = PLS_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+
+
+########################################################################################################
+############################################# STACKING #################################################
+########################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

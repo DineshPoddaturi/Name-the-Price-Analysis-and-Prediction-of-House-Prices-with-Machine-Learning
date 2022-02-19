@@ -110,12 +110,11 @@ From all the tests for variable importance above, I conclude that almost all the
 2. I change \textit{zipcode} to \textit{factor} variable since it is not an integer/numeric.
 3. I change \textit{waterfront} to \textit{factor} variable since it's data type is binary (0 or 1).
 4. I change \textit{condition} to \textit{factor} variable since it is a rating.
-5. I drop  \textit{sqft_living},  \textit{sqft_lot},  \textit{sqft_above}, and  \textit{sqft_basement.} This is because  \textit{sqft_living15} and  \textit{sqft_lot15} contain the most recent information about the house.
+5. I drop  \textit{sqft_living},  \textit{sqft_lot},  \textit{sqft_above}, and  \textit{sqft_basement.} This is because  \textit{sqft_living15} and  \textit{sqft_lot15} contain the most recent information about the house. Although more information is better. Including all the variables might make our design matrix a singular matrix. Although the algorithms we are going to use would drop those variables, I drop them to make the data as clean and informative as possible.  
 
 The above changes are made in both training and testing data.
 
 Implementing Supervised learning algorithms:
-
 
 ## k-Nearest Neighbour:
 
