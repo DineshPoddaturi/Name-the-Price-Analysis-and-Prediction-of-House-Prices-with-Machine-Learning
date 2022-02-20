@@ -170,7 +170,7 @@ knnTune_housePrice <- train(y = house_train[,1], x = house_train[,2:13],
 ##### I am also asking the algorithm to try values of k from 1 to 20.
 
 plot(knnTune_housePrice)
-knnTune_housePrice$bestTune
+knnBestTune <- knnTune_housePrice$bestTune
 #### From the plot and bestTune above, the model selected k = 4
 knnTune_housePrice$results
 
@@ -305,7 +305,7 @@ forestResults <- forestTune_housePrice
 # The final value used for the model was mtry
 # = 38.
 
-firestBestTune <- forestTune_housePrice$bestTune
+forestBestTune <- forestTune_housePrice$bestTune
 #     mtry
 # 38   38
 
@@ -356,7 +356,7 @@ plot(GbmTune_housePricing)
 ########################################################################################################
 
 designMatXGB <- model.matrix(lm(housePrice~.,data=house_train))
-designMatXGB <- designMat[,-1]
+designMatXGB <- designMatXGB[,-1]
 
 # set up the cross-validated hyper-parameter search
 xgb_grid <- expand.grid(eta = seq(from = 0.01, to = 0.2, length.out = 3),
@@ -518,11 +518,93 @@ plsPrediction <- cbind(train_housePrice,PLS_housePrice) %>% as.data.frame()
 PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
                                                         y = PLS_housePrice)) + geom_jitter() + geom_smooth(method = loess)
 
-
 ########################################################################################################
 ############################################# STACKING #################################################
 ########################################################################################################
 
+### It is clear from the above plots eXtreme Gradiant Boosting (XGB), Random Forest, 
+### Gradiant Boosting Method (GBM), and K Nearest Neighbours Perform well in predicting the house prices
+### in that order. 
+
+#### Now for better performance I am going to use ensamble methods to combine all the models to create 
+#### a meta-model. Specifically I use Stacking to create a meta-model.
+
+### First I get the best tune from the above mentioned models
+
+xgbBestTune_meta <- xgbBestTune
+forestBestTune_meta <- forestBestTune
+gbmBestTune_meta <- gbm_BestTune
+knnBestTune_meta <- knnBestTune
+
+### I arrange all the best tune and the models for stacking
+method_meta <- c("xgbTree", "rf", "gbm", "knn")
+parametersTuned_meta <- list(xgbBestTune_meta, forestBestTune_meta, gbmBestTune_meta, knnBestTune_meta)
+
+
+metaPred1<- matrix( NA, nrow = dim(house_test)[1], ncol = length(method_meta) + 2)
+metaPred2<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta))
+
+metaPred11<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta) + 2)
+metaPred21<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta))
+
+train <- house_train
+test <- house_test
+
+for (j in 1:length(method_meta)){
+  
+  # j <- 1
+  
+  # if(method_meta[j] %in% c("xgbTree", "rf")){
+  #   
+  #   designMat <- model.matrix(lm(house_train$housePrice~.,data=house_train))
+  #   designMat <- designMat[,-1]
+  #   
+  # } else if (method_meta[j] %in% c("gbm", "knn")){
+  #   
+  #   designMat <- house_train[,-1]
+  #   
+  # }
+  
+  modelfit <- train(housePrice~.,
+                    data  = house_train,
+                    method = method_meta[j],
+                    preProc = c("center","scale"),
+                    trControl = trainControl(method="none"),
+                    tuneGrid = parametersTuned_meta[[j]])
+  
+  
+  metaPred1[,j] <- predict(modelfit, newdata = house_test)
+  metaPred2[,j] <- predict(modelfit, newdata = house_train)
+  
+  metaPred11[,j] <- predict(modelfit, newdata = house_train)
+  metaPred21[,j] <- predict(modelfit, newdata = house_train)
+  
+}
+
+
+emfit1 <- lm(train$housePrice ~ metaPred2)
+
+emfit2 <- train(y = train$housePrice,
+               x = as.data.frame(metaPred2),
+               tuneGrid = data.frame(mtry=1:50),
+               method = "rf", ntree = 150,
+               trControl = trainControl(method="oob"))
+
+plot(emfit2)
+
+
+emfit11 <- lm(train$housePrice ~ metaPred21)
+emfit21 <- train(y = train$housePrice,
+                 x = as.data.frame(metaPred21),
+                tuneGrid = data.frame(mtry=1:50),
+                method = "rf", ntree = 150,
+                trControl = trainControl(method="oob"))
+
+metaPred1[,5] <- cbind( matrix(1,nrow=dim(house_test)[1],ncol=1) , pred1[,-c(5,6)] ) %*% coef(emfit1)
+metaPred1[,6] <- predict( emfit2, as.data.frame(metaPred1))
+
+metaPred11[,5] <- cbind( matrix(1,nrow=dim(house_train)[1],ncol=1) , pred11[,-c(5,6)] ) %*% coef(emfit11)
+metaPred11[,6] <- predict( emfit21, as.data.frame(metaPred11))
 
 
 
@@ -535,6 +617,139 @@ PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
 
 
 
+
+
+
+
+#### Here I randomly break the data into samples.
+#### Note: This is to increase the predictive power (and also to confuse the models such that they just 
+### don't look at similar patterns). In my opinion this is necessary. This procedure would make us trust 
+### our meta model.
+
+shuffle_meta <- sample(dim(house_train)[1])
+folds_meta <- list()
+
+for (i in 1:10){
+  if (i != 10){
+    folds_meta[[i]]<- shuffle_meta[(490*(i-1)+1):(490*i)]
+  } 
+  else {
+    folds_meta[[i]]<- shuffle_meta[(490*(i-1)+1):dim(house_train)[1]]
+    }
+}
+
+# Each element in folds_meta contains a randomly sampled data. Neat stuff
+# For instance lets look at the first fold
+house_train[folds_meta[[1]],] %>% head()
+#         housePrice bedrooms bathrooms floors waterfront view condition grade yr_built
+# 9264     925000        3      3.25      2          0    0         3     9     2002
+# 6211     375000        2      1.50      2          0    0         3     8     2007
+# 704      264000        3      2.50      2          0    0         3     8     2014
+# 7399     318000        3      2.25      1          0    0         5     7     1982
+# 3857     230000        3      2.00      1          0    0         3     7     1987
+# 313      635000        4      1.75      1          0    0         4     8     1969
+#       yr_renovated zipcode     lat     long sqft_living15 sqft_lot15
+# 9264            0   98006 47.5506 -122.187          2640      14700
+# 6211            0   98122 47.6028 -122.309          1470       1768
+# 704             0   98198 47.3667 -122.307          1658       2700
+# 7399            0   98178 47.4972 -122.264          1950       9642
+# 3857            0   98038 47.3597 -122.051          1530       7362
+# 313             0   98007 47.6196 -122.139          2120      12051
+
+
+meta1<- list()
+meta2<- list()
+
+meta11<- list()
+meta21<- list()
+
+
+# for(i in 1:length(folds_meta)){
+  
+  train_meta <- house_train[folds_meta[[1]],]
+  housePrice_meta <- train_meta$housePrice
+  test_meta <- house_test
+  
+  meta1[[1]] <- matrix(NA, nrow = dim(test_meta)[1], ncol = length(method_meta) + 2)
+  meta2[[1]] <- matrix(NA, nrow = dim(train_meta)[1], ncol = length(method_meta))
+  
+  meta11[[1]] <- matrix(NA, nrow = dim(train_meta)[1], ncol = length(method_meta) + 2)
+  meta21[[1]] <- matrix(NA, nrow = dim(train_meta)[1], ncol = length(method_meta))
+  
+  for (j in 1:length(method_meta)){
+    
+    if(method_meta[j] %in% c("xgbTree", "rf")){
+      designMat <- model.matrix(lm(housePrice_meta~.,data=train_meta))
+      designMat <- designMat[,-1]
+    } else if (method_meta[j] %in% c("gbm", "knn")){
+      designMat <- train_meta[,-1]
+    }
+    
+    modelfit <- train(y = housePrice_meta,
+                     x = designMat,
+                     method = method_meta[j],
+                     preProc = c("center","scale"),
+                     trControl = trainControl(method="none"),
+                     tuneGrid = parametersTuned_meta[[j]])
+    
+    meta1[[1]][,j]<- predict(modelfit , newdata = test_meta)
+    meta2[[1]][,j]<- predict(modelfit , newdata = train_meta)
+    
+    meta11[[1]][,j]<- predict(modelfit , newdata = train_meta)
+    meta21[[1]][,j]<- predict(modelfit , newdata = train_meta)
+    
+  }
+  
+  
+  
+  
+# }
+
+  train<- house_train
+  test<- house_test
+  pred1<- matrix(NA,nrow=dim(test)[1],ncol=length(method_meta) + 2)
+  pred2<- matrix(NA,nrow=dim(train)[1],ncol=length(method_meta))
+  
+  pred11<- matrix(NA,nrow=dim(train)[1],ncol=length(method_meta) + 2)
+  pred21<- matrix(NA,nrow=dim(train)[1],ncol=length(method_meta))
+  
+  for (j in 1:length(method_meta)){
+    
+    modelfit <- train(housePrice~.,
+                     data=train,
+                     method=method_meta[1],
+                     preProc=c("center","scale"),
+                     trControl=trainControl(method="none"),
+                     tuneGrid=parametersTuned_meta[[1]])
+    
+    pred1[,j]<- predict(modelfit,newdata=test)
+    pred2[,j]<- predict(modelfit,newdata=train)
+    
+    pred11[,j]<- predict(modelfit,newdata=train)
+    pred21[,j]<- predict(modelfit,newdata=train)
+  }
+  
+  emfit1<- lm(train$housePrice~pred2)
+  
+  emfit2<- train(y=train$housePrice,
+                 x=as.data.frame(pred2),
+                 tuneGrid = data.frame(mtry=1:50),
+                 method = "rf", ntree = 150,
+                 trControl = trainControl(method="oob"))
+  
+  emfit11<- lm(train$housePrice~pred21)
+  emfit21<- train(y=train$housePrice,
+                  x=as.data.frame(pred21),
+                  tuneGrid = data.frame(mtry=1:50),
+                  method = "rf", ntree = 150,
+                  trControl = trainControl(method="oob"))
+  
+  pred1[,4]<- cbind(matrix(1,nrow=dim(test)[1],ncol=1),pred1[,-c(5)])%*%coef(emfit1)
+  pred1[,5]<- predict(emfit2,as.data.frame(pred1))
+  
+  
+  pred11[,4]<- cbind(matrix(1,nrow=dim(train)[1],ncol=1),pred11[,-c(4,5)])%*%coef(emfit11)
+  pred11[,5]<- predict(emfit21,as.data.frame(pred11))
 
 
 
