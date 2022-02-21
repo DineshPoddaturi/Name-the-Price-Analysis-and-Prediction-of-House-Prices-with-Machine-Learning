@@ -518,6 +518,7 @@ plsPrediction <- cbind(train_housePrice,PLS_housePrice) %>% as.data.frame()
 PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
                                                         y = PLS_housePrice)) + geom_jitter() + geom_smooth(method = loess)
 
+
 ########################################################################################################
 ############################################# STACKING #################################################
 ########################################################################################################
