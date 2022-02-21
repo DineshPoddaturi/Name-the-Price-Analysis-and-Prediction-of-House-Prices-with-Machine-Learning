@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1643553373180.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1871839569",
+    "id" : "E3F11422",
+    "lastKnownWriteTime" : 1645282020,
+    "last_content_update" : 1645282020482,
+    "path" : "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices/Supervised Learning - Analysing the housing prices.Rmd",
+    "project_path" : "Supervised Learning - Analysing the housing prices.Rmd",
+    "properties" : {
+        "cursorPosition" : "117,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
