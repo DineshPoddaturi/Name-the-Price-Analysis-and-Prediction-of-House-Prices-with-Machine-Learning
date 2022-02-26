@@ -595,25 +595,76 @@ plot(emfit2)
 
 
 emfit11 <- lm(train$housePrice ~ metaPred21)
+
 emfit21 <- train(y = train$housePrice,
                  x = as.data.frame(metaPred21),
                 tuneGrid = data.frame(mtry=1:50),
                 method = "rf", ntree = 150,
                 trControl = trainControl(method="oob"))
 
-metaPred1[,5] <- cbind( matrix(1,nrow=dim(house_test)[1],ncol=1) , pred1[,-c(5,6)] ) %*% coef(emfit1)
+plot(emfit21)
+
+nnet.gridMeta <- expand.grid(size = seq(from = 1, to = 6, length.out = 6),
+                         decay = seq(from = .3, to = .8, length.out = 6))
+
+emfit2_kNN <- train(y = train$housePrice,
+                 x = as.data.frame(metaPred21),
+                 method = "knn",
+                 preProcess = c("center","scale"),
+                 tuneGrid = data.frame(.k=1:20),
+                 trControl = trainControl(method = "repeatedcv", repeats = 3, number = 10))
+plot(emfit2_kNN)
+
+
+
+metaPred1[,5] <- cbind( matrix(1,nrow=dim(house_test)[1],ncol=1) , metaPred1[,-c(5,6)] ) %*% coef(emfit1)
 metaPred1[,6] <- predict( emfit2, as.data.frame(metaPred1))
 
-metaPred11[,5] <- cbind( matrix(1,nrow=dim(house_train)[1],ncol=1) , pred11[,-c(5,6)] ) %*% coef(emfit11)
+metaPred11[,5] <- cbind( matrix(1,nrow=dim(house_train)[1],ncol=1) , metaPred11[,-c(5,6)] ) %*% coef(emfit11)
 metaPred11[,6] <- predict( emfit21, as.data.frame(metaPred11))
 
 
+metaStack<- as.data.frame(metaPred1)
+colnames(metaStack)[1:4]<- method_meta
+colnames(metaStack)[5:6]<- c("enOLS","enFOR")
 
 
+metaStack1<- as.data.frame(metaPred11)
+colnames(metaStack1)[1:4]<- method_meta
+colnames(metaStack1)[5:6]<- c("enOLS","enFOR")
 
+metaStack1$kNN <- predict( emfit2_kNN, as.data.frame(metaPred11))
 
+### Here I arrange the predicted price from stacking using random forest (note this contains the methods
+### "xgbTree", "rf", "gbm", "knn", stacking of those methods with OLS and a stack of all methods and OLS)
+### So it is safe to call this super stack
+RF_housePriceStack <- metaStack1$enFOR
+RF_housePriceStack <- cbind(train_housePrice,RF_housePriceStack)%>%as.data.frame() 
+RF_housePriceStack <- RF_housePriceStack/1000000
+RF_prediction_plot_stack <- ggplot(data=RF_housePriceStack,aes(x=train_housePrice,
+                                                               y=RF_housePriceStack))+
+  geom_jitter()+geom_smooth(method = loess) + scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="Predicted House Price (in Million $)") + ggtitle("Train vs Random Forest Super Stacked Predicted House Price")
 
+#### Here I arrange the predicted price from stacking using OLS
+OLS_housePriceStack<- metaStack1$enOLS
+OLS_housePriceStack <- cbind(train_housePrice,OLS_housePriceStack)%>%as.data.frame()
+OLS_housePriceStack <- OLS_housePriceStack/1000000
+OLS_prediction_plot_stack <- ggplot(data=OLS_housePriceStack,aes(x=train_housePrice,
+                                                                 y=OLS_housePriceStack))+
+  geom_jitter()+geom_smooth(method = loess) + scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="Predicted House Price (in Million $)") + ggtitle("Train vs OLS Stacked Predicted House Price")
 
+### Here I arrange the predicted price from stacking using kNN (note this contains the methods
+### "xgbTree", "rf", "gbm", "knn", stacking of those methods with OLS and a stack of all methods OLS and RF)
+### So it is safe to call this super super stack
+KNN_housePriceStack <- metaStack1$kNN
+KNN_housePriceStack <- cbind(train_housePrice,KNN_housePriceStack)%>%as.data.frame() 
+KNN_housePriceStack <- KNN_housePriceStack/1000000
+KNN_prediction_plot_stack <- ggplot(data=KNN_housePriceStack,aes(x=train_housePrice,
+                                                               y=KNN_housePriceStack))+
+  geom_jitter()+geom_smooth(method = loess) + scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="Predicted House Price (in Million $)") + ggtitle("Train vs KNN Super Super Stacked Predicted House Price")
 
 
 
