@@ -22,7 +22,7 @@
 ### Here instead of loading each package seperately, I load all of them at the same time. 
 packagesToLoad <- c("stringr", "Matrix", "glmnet", "xgboost", "randomForest", "Metrics", "caret", "scales",
                     "e1071", "corrplot", "psych", "tidyverse", "lubridate", "pls", "gdata", "graphics", "rpart",
-                    "gbm", "earth", "Boruta", "ggcorrplot")
+                    "gbm", "earth", "Boruta", "ggcorrplot", "rpart.plot")
 lapply(packagesToLoad, require, character.only = TRUE)
 
 
@@ -227,6 +227,7 @@ forestTune_housePrice <- train(y = house_train[,1], x = designMatRF,
                              tuneGrid = data.frame(mtry=1:50),
                              method = "rf", ntree = 150,
                              trControl = trainControl(method="oob"))
+
 # In the Random Forest model, the original training data is randomly sampled-with-replacement generating small subsets of data.
 # These subsets are also known as bootstrap samples.
 # mtry: Number of variables randomly sampled as candidates at each split.
@@ -326,6 +327,11 @@ treeBestTune <- TreeTune_housePricing$bestTune
 # cp (complexity parameter)
 # 1 1e-04
 
+fit.model <- rpart(house_train[,1]~., data = house_train, cp = treeBestTune)
+
+fittedModelPlot <- rpart.plot(fit.model, main = "Fitted Model")
+
+
 ########################################################################################################
 ####################################### USING Gradient Boosting Machine ################################
 ########################################################################################################
@@ -393,7 +399,8 @@ Enet_grid <- expand.grid(alpha = seq(0,.5,length.out=15),
                                lambda = seq(10,500,length.out=15))
 
 ENetTune_housePrice <- train(y = house_train[,1], x = designMatENET,
-                           method = "glmnet", tuneGrid = Enet_grid,
+                           method = "glmnet",
+                           tuneGrid = Enet_grid,
                            trControl = trainControl(method="repeatedcv", repeats = 2, number = 10))
 
 ENetBestTune <- ENetTune_housePrice$bestTune
@@ -456,67 +463,99 @@ train_housePrice <- house_train$housePrice
 ### Using Neural Net best tune to predict the training data house price
 NNET_housePrice <- predict(nnetTune_housePrice, house_train)
 nnetPrediction <- cbind(train_housePrice, NNET_housePrice)%>%as.data.frame()
+
+nnetPrediction <- nnetPrediction/1000000
+
 NNET_prediction_plot <- ggplot(data = nnetPrediction, aes(x = train_housePrice,
-                                                     y = NNET_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                     y = NNET_housePrice)) + geom_jitter() + geom_smooth(method = loess) + 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="NNet Predicted House Price (in Million $)")
 
 
 ### Using k Nearest Neighbor best tune to predict the training data house price
 KNN_housePrice <- predict(knnTune_housePrice,house_train)
 knnPrediction <- cbind(train_housePrice,KNN_housePrice)%>%as.data.frame()
+knnPrediction <- knnPrediction/1000000
 KNN_prediction_plot <- ggplot(data = knnPrediction, aes(x = train_housePrice,
-                                                         y = KNN_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                         y = KNN_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="kNN Predicted House Price (in Million $)")
 
 
 ### Using multiple linear regression best tune to predict the training data house price
 LM_housePrice <- predict(lmTune_housePrice,house_train)
 lmPrediction <- cbind(train_housePrice,LM_housePrice) %>% as.data.frame()
+lmPrediction <- lmPrediction/1000000
 LM_prediction_plot <- ggplot(data = lmPrediction, aes(x = train_housePrice,
-                                                        y = LM_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                        y = LM_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="MLR Predicted House Price (in Million $)")
 
 
 ### Using random forest best tune to predict the training data house price
 RF_housePrice <- predict(forestTune_housePrice,designMatRF)
 rfPrediction <- cbind(train_housePrice,RF_housePrice) %>% as.data.frame()
+rfPrediction <- rfPrediction/1000000
 RF_prediction_plot <- ggplot(data = rfPrediction, aes(x = train_housePrice,
-                                                      y = RF_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                      y = RF_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="RF Predicted House Price (in Million $)")
 
 
 ### Using tree best tune to predict the training data house price
 TREE_housePrice <- predict(TreeTune_housePricing,house_train)
 treePrediction <- cbind(train_housePrice,TREE_housePrice) %>% as.data.frame()
+treePrediction <- treePrediction/1000000
 TREE_prediction_plot <- ggplot(data = treePrediction, aes(x = train_housePrice,
-                                                      y = TREE_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                      y = TREE_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="Decision Tree Predicted House Price (in Million $)")
 
 
 ### Using Gradient Boosting Machine best tune to predict the training data house price
 GBM_housePrice <- predict(GbmTune_housePricing,house_train)
 gbmPrediction <- cbind(train_housePrice,GBM_housePrice) %>% as.data.frame()
+gbmPrediction <- gbmPrediction/1000000
 GBM_prediction_plot <- ggplot(data = gbmPrediction, aes(x = train_housePrice,
-                                                          y = GBM_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                          y = GBM_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="GBM Predicted House Price (in Million $)")
 
 ### Using eXtreme Gradient Boosting Machine best tune to predict the training data house price
 XGB_housePrice <- predict(xgbTune_housePrice,designMatXGB)
 xgbPrediction <- cbind(train_housePrice,XGB_housePrice) %>% as.data.frame()
+xgbPrediction <- xgbPrediction/1000000
 XGB_prediction_plot <- ggplot(data = xgbPrediction, aes(x = train_housePrice,
-                                                        y = XGB_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                        y = XGB_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="XGB Predicted House Price (in Million $)")
 
 ### Using Elastic Net best tune to predict the training data house price
 ENET_housePrice <- predict(ENetTune_housePrice,designMatENET)
 enetPrediction <- cbind(train_housePrice,ENET_housePrice) %>% as.data.frame()
+enetPrediction <- enetPrediction/1000000
 ENET_prediction_plot <- ggplot(data = enetPrediction, aes(x = train_housePrice,
-                                                        y = ENET_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                        y = ENET_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="ENET Predicted House Price (in Million $)")
 
 ### Using Principal Component Regression best tune to predict the training data house price
 PCR_housePrice <- predict(pcrTune_housePrice,designMatPCR)
 pcrPrediction <- cbind(train_housePrice,PCR_housePrice) %>% as.data.frame()
+pcrPrediction <- pcrPrediction/1000000
 PCR_prediction_plot <- ggplot(data = pcrPrediction, aes(x = train_housePrice,
-                                                          y = PCR_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                          y = PCR_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="PCR Predicted House Price (in Million $)")
 
 ### Using Partial Least Squares best tune to predict the training data house price
 PLS_housePrice <- predict(plsTune_housePrice,designMatPLS)
 plsPrediction <- cbind(train_housePrice,PLS_housePrice) %>% as.data.frame()
+plsPrediction <- plsPrediction/1000000
 PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
-                                                        y = PLS_housePrice)) + geom_jitter() + geom_smooth(method = loess)
+                                                        y = PLS_housePrice)) + geom_jitter() + geom_smooth(method = loess)+ 
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="PLS Predicted House Price (in Million $)")
 
 
 ########################################################################################################

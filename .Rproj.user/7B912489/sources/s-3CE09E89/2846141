@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1645973481798.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "35|18|43|0|\n45|18|55|0|\n64|18|71|0|\n77|18|84|0|\n90|18|97|0|\n103|18|108|0|\n136|18|149|0|\n163|18|179|0|\n192|18|201|0|\n228|18|239|0|\n253|18|272|0|\n286|18|309|0|\n324|18|353|0|\n369|18|389|0|\n403|18|421|0|\n431|18|450|0|\n",
+    "hash" : "3262766717",
+    "id" : "2846141",
+    "lastKnownWriteTime" : 1645982313,
+    "last_content_update" : 1645982313511,
+    "path" : "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices/report.Rmd",
+    "project_path" : "report.Rmd",
+    "properties" : {
+        "cursorPosition" : "531,0",
+        "scrollLine" : "502",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
