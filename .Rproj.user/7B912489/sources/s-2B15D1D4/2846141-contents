@@ -458,7 +458,7 @@ plot(plsTune_housePrice)
 
 # Prediction plots of the above fitted models
 
-Now to see how the above supervised learning models perform, I predict the training set price with the fitted models. I argue that it is okay to predict the same training price with the model built on the same data. I perform this small exercise to visualize the model performance and later select the models for stacking purpose (stacking is explained in next subsequent sections).
+Now to see how the above supervised learning models perform, I predict the training set price with the fitted models. I argue that it is okay to predict the same training price with the model built on the same data.^[All the model are fit either by repeated cross validation or with out of bag methods.] I perform this small exercise to visualize the model performance and later select the models for stacking purpose (stacking is explained in next subsequent sections).
 
 ## k-Nearest Neighbour Prediction
 
@@ -532,6 +532,177 @@ Now to see how the above supervised learning models perform, I predict the train
 
 
 # Stacking
+
+Stacking is one of the ensamble methods that has become popular in the recent years and became a go to method to use for any supervised learning methods. Simply put, it uses meta-learning algorithm to combine and learn from different base learning models. Base learning models include all the methods I provided above. I use stacking to improve and increase my predictive power. First, I pick the base models to include in the meta-learning algorithm. I have be extra careful when picking the base learning models. I simply cannot use all the above methods. From the prediction plots above it is apparant that some base models are very poor in predicting the house prices. So using them in the meta-learning algorithm is not ideal. Along with the prediction plots, I also use other metrics such as Root Mean Squared Error (RMSE) and R-squared to pick the base models. A linear relationship in the above plots, a low RMSE, and a high R-squared are used to pick the base models for meta-learning. By carefully analyzing the metrics, I picked: Extreme Gradient Boosting Machine (XGBoost), Random Forest (RF), gradient Gradient Boosting Machine (GBM), and k-Nearest Neighbour (kNN) for meta-learning.
+
+Before jumping into meta-learning, I get the best tune of the base methods and arrange them.
+
+```{r eval=FALSE}
+### First I get the best tune from the above mentioned models
+xgbBestTune_meta <- xgbBestTune
+forestBestTune_meta <- forestBestTune
+gbmBestTune_meta <- gbm_BestTune
+knnBestTune_meta <- knnBestTune
+
+### I arrange all the best tune and the models for stacking
+method_meta <- c("xgbTree", "rf", "gbm", "knn")
+parametersTuned_meta <- list(xgbBestTune_meta, forestBestTune_meta, gbmBestTune_meta, knnBestTune_meta)
+```
+
+In the code snippet belwo, I arrange the data for stacking by simply using the model fit to get the prediction. *metaPred1*, *metaPred2*, *metaPred11*, and *metaPred21* contain those data.
+
+```{r eval=FALSE}
+metaPred1<- matrix( NA, nrow = dim(house_test)[1], ncol = length(method_meta) + 2)
+metaPred2<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta))
+
+metaPred11<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta) + 2)
+metaPred21<- matrix( NA, nrow = dim(house_train)[1], ncol = length(method_meta))
+
+train <- house_train
+test <- house_test
+
+for (j in 1:length(method_meta)){
+  
+  modelfit <- train(housePrice~.,
+                    data  = house_train,
+                    method = method_meta[j],
+                    preProc = c("center","scale"),
+                    trControl = trainControl(method="none"),
+                    tuneGrid = parametersTuned_meta[[j]])
+  
+  
+  metaPred1[,j] <- predict(modelfit, newdata = house_test)
+  metaPred2[,j] <- predict(modelfit, newdata = house_train)
+  
+  metaPred11[,j] <- predict(modelfit, newdata = house_train)
+  metaPred21[,j] <- predict(modelfit, newdata = house_train)
+}
+
+```
+
+ 
+ 
+Now I use metaPred2 (which contains predictions from base models with best tune), to fit another base model. I use linear regression model, RF, and kNN to get the weights and best tunes. 
+
+```{r eval=FALSE}
+emfit1 <- lm(train$housePrice ~ metaPred2)
+
+emfit2_RF <- train(y = train$housePrice,
+               x = as.data.frame(metaPred2),
+               tuneGrid = data.frame(mtry=1:50),
+               method = "rf", ntree = 150,
+               trControl = trainControl(method="oob"))
+
+nnet.gridMeta <- expand.grid(size = seq(from = 1, to = 6, length.out = 6),
+                         decay = seq(from = .3, to = .8, length.out = 6))
+
+emfit2_kNN <- train(y = train$housePrice,
+                 x = as.data.frame(metaPred21),
+                 method = "knn",
+                 preProcess = c("center","scale"),
+                 tuneGrid = data.frame(.k=1:20),
+                 trControl = trainControl(method = "repeatedcv", repeats = 3, number = 10))
+
+plot(emfit2_RF)
+
+plot(emfit2_kNN)
+```
+
+
+\begin{figure}[H]
+\caption{RF Meta-Learning Tuned Plot}\label{Plot:RFMeta1}
+  \includegraphics[width=1\linewidth]{tunePlots/RFMetaTunePlot.jpeg}
+\end{figure}
+
+\begin{figure}[H]
+\caption{kNN Meta-Learning Tuned Plot}\label{Plot:knnMeta1}
+  \includegraphics[width=1\linewidth]{tunePlots/knnMetaTunePlot.jpeg}
+\end{figure}
+
+From the above best tune plots the lowest RMSE is achieved for *mtry=9* and *k=3* for RF and kNN respectively.
+
+
+Finally I perform the following procedure to get the meta-algorithm prediction:
+1. Use the corfficients from linear regression model as weights on the predictions of base models to predict the first meta price.
+2. Use the best tune from kNN meta model on the predictions of base models and the meta prediction in step 1.
+3. Use the best tune from RF meta model on the predictions of base models, the meta prediction in step 1, and the meta prediction in step 2.
+
+The following code snippet is used perform the above procedure and arrange the predictions in a dataframe.
+
+```{r eval=FALSE}
+# Using the best fit of LM to assign weights for base models and predict
+metaPred11[,5] <- cbind( matrix(1,nrow=dim(house_train)[1],ncol=1) , metaPred11[,-c(5,6)] ) %*% coef(emfit1)
+
+# Using the best tune of RF on base models plus meta LM model and predict 
+metaPred11[,6] <- predict( emfit2_kNN, as.data.frame(metaPred11))
+metaStack1<- as.data.frame(metaPred11)
+colnames(metaStack1)[1:4]<- method_meta
+colnames(metaStack1)[5:6]<- c("enOLS","enKNN")
+
+# Using the best tune of kNN on base models + meta LM + meta RF
+metaStack1$enRF <- predict( emfit2_RF, as.data.frame(metaPred11))
+```
+
+*metaStack1* contains the predictions from the base models and meta models. Below, I provide the plots similar to the base model prediction.
+
+
+## OLS Stacked Prediction
+
+\begin{figure}[H]
+\caption{OLS Stacked Prediction Plot}\label{Plot:OLSstack}
+  \includegraphics[width=1\linewidth]{metaMethodPlots/olsMetaPredictionPlot.jpeg}
+\end{figure}
+
+## k-Nearest Neighbour Stacked Prediction
+
+\begin{figure}[H]
+\caption{KNN Stacked Prediction Plot}\label{Plot:KNNStack}
+  \includegraphics[width=1\linewidth]{metaMethodPlots/knnMetaPredictionPlot.jpeg}
+\end{figure}
+
+## Random Forest (RF) Stacked Prediction
+
+\begin{figure}[H]
+\caption{RF Stacked Prediction Plot}\label{Plot:RFstack}
+  \includegraphics[width=1\linewidth]{metaMethodPlots/rfMetaPredictionPlot.jpeg}
+\end{figure}
+
+
+# Predicting the Price for test data
+
+I use all the lessons learned in the above sections to predict the house price from the test data. Note: In the test data we only have house characteristics. Using those house characteristics I have to predict the price. I use the best tune parameters from the base models and from the meta-learnings models to predict the price.
+ 
+*metaPred1* already contains the house predictions made by the base models XGBoost, RF, GBM, and kNN. Now I use the weights from the linear regression, kNN, and RF meta models to predict the house price for test data.
+
+
+```{r eval=FALSE}
+metaPred1[,5] <- cbind( matrix(1,nrow=dim(house_test)[1],ncol=1) , metaPred1[,-c(5,6)] ) %*% coef(emfit1)
+metaPred1[,6] <- predict( emfit2_kNN, as.data.frame(metaPred1))
+metaStack<- as.data.frame(metaPred1)
+colnames(metaStack)[1:4]<- method_meta
+colnames(metaStack)[5:6]<- c("enOLS","enKNN")
+metaStack$enRF <- predict( emfit2_RF, as.data.frame(metaPred1))
+metaStack %>% head()
+```
+
+*metaStack* contains the price predicted from the supervised learning models. 
+
+The following code snippet writes the predicted price in .csv files and saves them in the current directory. 
+
+```{r eval= FALSE}
+
+names(metaStack) <- c("priceXGB", "priceRF", "priceGBM", 
+                      "priceKNN", "priceEnOLS", "priceEnKNN", "priceEnRF")
+
+testPredictedHousePrice <- cbind(metaStack, house_test)
+  
+write.csv(testPredictedHousePrice,file="testPredictedHousePrice.csv")
+
+```
+
+
+
+
 
 
 
