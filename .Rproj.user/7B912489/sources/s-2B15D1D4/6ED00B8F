@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "6ED00B8F",
-    "lastKnownWriteTime" : 1645982092,
-    "last_content_update" : 1645982092696,
+    "lastKnownWriteTime" : 1646580520,
+    "last_content_update" : 1646580520428,
     "path" : "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices/SupervisedLearning.Rmd",
     "project_path" : "SupervisedLearning.Rmd",
     "properties" : {
-        "cursorPosition" : "61,37",
-        "scrollLine" : "49",
+        "cursorPosition" : "20,26",
+        "scrollLine" : "8",
         "tempName" : "Untitled1"
     },
     "read_only" : false,

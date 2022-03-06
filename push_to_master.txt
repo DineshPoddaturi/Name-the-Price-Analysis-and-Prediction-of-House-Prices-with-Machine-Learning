@@ -1,2 +1,0 @@
-git fetch origin master  git merge master  git push origin development:master
-
