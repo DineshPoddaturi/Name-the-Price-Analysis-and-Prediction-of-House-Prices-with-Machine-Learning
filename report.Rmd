@@ -1,38 +1,38 @@
 
 # Introduction
 
-In this project I use multiple supervised learning methods to carefully analyze and predict house prices. Originally this project was a part of Kaggle data science competition. Although I didn't win the competition, I learned a lot during and after the competition. I believe in the mantra "learning by doing" (coined by a famous American philosopher \textit{John Dewey}). So I have been working on this project by making multiple changes, trying different algorithms, eventually improving my modeling techniques and prediction power.
+In this project, I use multiple supervised learning methods to carefully analyze and predict house prices. Originally this project was a part of the Kaggle data science competition. Although I didn't win the competition, I learned a lot during and after the competition. I believe in the mantra "learning by doing" (coined by a famous American philosopher \textit{John Dewey}). So I have been working on this project by making multiple changes, trying different algorithms, and eventually improving my modeling techniques and prediction power.
 
 # Data
 
-The data are free to download from Kaggle website. I downloaded the data a while ago and has been working with the same data. There are two different files of data; (1) Training data containing the price of the house and house characteristics (e.g., the year it was constructed, number of bed rooms, number of bathrooms, latitude and so on) and (2) Testing data containing only the characteristics of the house. My goal simply is to predict the house prices in the testing data. In order to do that, first I analyze the training data using multiple supervised learning methods and use the models to predict the house price in the testing data.
+The data are free to download from the Kaggle website. I downloaded the data a while ago and have been working with the same data. There are two different files of data; (1) Training data containing the price of the house and house characteristics (e.g., the year it was constructed, number of bedrooms, number of bathrooms, latitude, and so on) and (2) Testing data containing only the characteristics of the house. My goal simply is to predict the house prices in the testing data. In order to do that, first I analyze the training data using multiple supervised learning methods and use the models to predict the house price in the testing data.
 
-One could immediately say this is not a classification problem. Note that the house prices are not boolean i.e., 0 or 1, instead they are discrete variable (one could argue it is a continuous variable, but I stay away from that argument in this analysis). So this could be considered as a regression problem. From my rigorus training in Economics, I can immediately identify a problem with the data. Endogeneity (the explanatory variables may be correlated with error term); People choose to live in a particular area. It could depend on the school district (people with kids), location (near to a metro or a mall), clean air, less noise pollution and so on. We cannot observe all these in the data. Although we have latitude and zip code, we cannot observe individual decision process and on what basis an individual makes choices. Hence, there could be endogeneity in the data. In this work, I do not focus on that issue. My primary objective of this work is to use supervised learning methods to predict the house prices. Furthermore, this is not a causal study (I am not claiming any causality and not claiming a certain variable causes the house price to increase or decrease). So, I stay away from endogeneity and self selection issues. This is a pure supervised learning exercise.
+One could immediately say this is not a classification problem. Note that the house prices are not boolean i.e., 0 or 1, instead they are discrete variables (one could argue it is a continuous variable, but I stay away from that argument in this analysis). So this could be considered a regression problem. From my rigorous training in Economics, I can immediately identify a problem with the data. Endogeneity (the explanatory variables may be correlated with the error term); People choose to live in a particular area. It could depend on the school district (people with kids), location (near to a metro or a mall), clean air, less noise pollution, and so on. We cannot observe all these in the data. Although we have latitude and zip code, we cannot observe individual decision processes and on what basis an individual makes choices. Hence, there could be endogeneity in the data. In this work, I do not focus on that issue. My primary objective of this work is to use supervised learning methods to predict house prices. Furthermore, this is not a causal study (I am not claiming any causality and not claiming a certain variable causes the house price to increase or decrease). So, I stay away from endogeneity and self-selection issues. This is a pure supervised learning exercise.
 
 ## Variable description
 
-Training data set contains the following variables, testing data contains same variables except *price* which is our variable of interest for prediction. 
+The training data set contains the following variables, and testing data contains the same variables except *price* which is our variable of interest for prediction.
 
 * id - (in the test set only) number of the test case
 * property - a unique identifier for a house
 * date - date house was sold (YYYYMMDD)
 * price - house selling price (prediction target)
-* bedrooms - number of bedrooms in house
+* bedrooms - number of bedrooms in the house
 * bathrooms - number of bathrooms in the house
-* sqft_living - square footage of house
+* sqft_living - square footage of the house
 * sqft_lot - lot area
 * floors - total floors/levels in the house
-* waterfront - indicator that the house has a view to a waterfront
+* waterfront - an indicator that the house has a view of a waterfront
 * condition - an overall condition rating
-* grade - an overall grade given to the housing unit per a King County grading system
-* sqft_above - square footage apart from basement
-* sqft_basement - square footage of basement
-* yr_built - year of initial construction
-* yr_renovated - year when house was renovated
-* zipcode - US Postal Service zipcode
+* grade -  overall grade given to the housing unit per a King County grading system
+* sqft_above - square footage apart from the basement
+* sqft_basement - square footage of the basement
+* yr_built - the year of initial construction
+* yr_renovated - the year when the house was renovated
+* zipcode - US Postal Service zip code
 * lat - latitude
 * long - longitude
-* sqft_living15 - square footage of house in 2015
+* sqft_living15 - square footage of the house in 2015
 * sqft_lot15 - lot size in 2015
 
 ```{r eval= FALSE}
@@ -59,7 +59,7 @@ train_data <- train_data %>% select(price:sqft_lot15)
 
 # Preliminary analysis:
 
-In this section, I perfom some preliminary analysis. Preliminary analysis include carefully studying each variable (house characteristic), it's data type (boolean, string, integer, character etc.), each variables correlation with outcome, importance of each variable, and whether the data type of a variable needs to be modified. 
+In this section, I perform some preliminary analysis. The preliminary analysis includes carefully studying each variable (house characteristic), its data type (boolean, string, integer, character, etc.), each variable's correlation with the outcome, the importance of each variable, and whether the data type of a variable needs to be modified. 
 
 
 ## Simple correlation analysis:
@@ -86,7 +86,7 @@ impVar_lm <- varImp(mreg)
 
 ```
 
-The above code snippet simply performs MLR using training data, and using the fitted model gives variable importance and their significance. From anova results, I conclude that almost all the explanatory variables are significant explaining the house price. However, the variable importance method concludes that bedrooms, sqft_living, waterfront, grade, yr_built, lat are the most important variables. By further analysis I find other variables are important as well. 
+The above code snippet simply performs MLR using training data, and using the fitted model gives variable importance and significance. From ANOVA results, I conclude that almost all the explanatory variables are highly significant in explaining the house price. However, the variable importance method concludes that bedrooms, sqft_living, waterfront, grade, yr_built, and lat are the most important variables. By further analysis, I find other variables are important as well. 
 
 ## Using eXtreme Gradient Boosting (XG Boost) to further analyze variable importance:
 
@@ -100,7 +100,7 @@ xgBoost_Imp
 
 ```
 
-Recently XGB has become a go-to algorithm in machine learning predictions and also in data science competitions. Execution speed and model performance are primary feature of this algorithm. I use this algorithm later to train the data. The above code snippet fits the training data and gives the important variables to consider (not remove). The XG boost selectd sqft_living, grade, lat, long, sqft_living15, yr_built, and waterfront as the most important variables.
+Recently XGB has become a go-to algorithm in machine learning predictions and also in data science competitions. Execution speed and model performance are the primary features of this algorithm. I use this algorithm later to train the data. The above code snippet fits the training data and gives the important variables to consider (not remove). The XG boost selected sqft_living, grade, lat, long, sqft_living15, yr_built, and waterfront as the most important variables.
 
 ## Boruta feature selection algorithm to determine the variable importance:
 
@@ -111,7 +111,7 @@ plot(boruta_fit)
 colMeans(boruta_fit$ImpHistory)
 ```
 
-Boruta feature selection algorithm is also widely used to find the variable importance. The above Boruta performed 68 iterations in 15.8 mins, and 18 attributes confirmed important which include bathrooms, bedrooms, condition, floors, grade and 13 more. No attributes deemed unimportant from the fit. Boruta also provides a simple visualization of the variable importance.
+Boruta feature selection algorithm is also widely used to find the variable importance. The above Boruta performed 68 iterations in 15.8 mins, and 18 attributes confirmed important which include bathrooms, bedrooms, condition, floors, grade, and 13 more. No attributes are deemed unimportant from the fit. Boruta also provides a simple visualization of the variable importance.
 
 \begin{figure}[H]
 \caption{Boruta fit plot}
@@ -119,9 +119,9 @@ Boruta feature selection algorithm is also widely used to find the variable impo
 \end{figure}
 
 
-From all the tests for variable importance above, I conclude that almost all the variables are important. So I keep all the variables for prediction. Now, I read description of each variable and use my judgement to drop, modify, or change the data type. I make the following changes in both training and testing data.
+From all the tests for variable importance above, I conclude that almost all the variables are important. So I keep all the variables for prediction. Now, I read the description of each variable and use my judgment to drop, modify, or change the data type. I make the following changes in both training and testing data.
 
-1. I drop \textit{date} from the data since all houses sold are in same year.
+1. I drop \textit{date} from the data since all houses sold are in the same year.
 2. I modify the data type of \textit{zipcode} to \textit{factor} variable since it is not a integer/numeric and also not a continuous variable.
 3. I modify the data type of  \textit{waterfront} to \textit{factor} variable since it's data type is binary (0 or 1).
 4. I modify the data type of  \textit{condition} to \textit{factor} variable since it is a rating.
@@ -163,9 +163,9 @@ house_test <- house_test %>% select(-sqft_above, -sqft_basement,
 
 # Implementing supervised learning algorithms
 
-For every algorithm, I provide a tune grid and also ask the algorithm to perform cross validation. In particular, I choose cross validation (CV) with repeats. Of course repeated cross validation will increase the execution time. But I prefer good results over time. With the availability of increased computing power, we can use HPC or even use parallel computing to execute the code. So a repeated cross validation is used with 2 repeats. Since I am doing this in my machine I chose 2 repeats. If it were to be executed on HPC I would choose 20 repeats. I also standardize the data whenever necessary. Simply I center and scale the data such that I don't have to think about the units of the variables included in the modeling. 
+For every algorithm, I provide a tune-grid and also ask the algorithm to perform cross-validation. In particular, I choose cross-validation (CV) with repeats. Of course, repeated cross-validation will increase the execution time. But I prefer good results over time. With the availability of increased computing power, we can use HPC or even use parallel computing to execute the code. So repeated cross-validation is used with 2 repeats. Since I am doing this on my machine I chose 2 repeats. If it were to be executed on HPC I would choose 20 repeats. I also standardize the data whenever necessary. Simply I center and scale the data such that I don't have to think about the units of the variables included in the modeling. 
 
-In this exercise the metrics I choose for the best fit are Root Mean Squared Error (RMSE) and R-Square. A low RMSE and a high R-square are considered best fit in the exercise.  
+In this exercise, the metrics I choose for the best fit are Root Mean Squared Error (RMSE) and R-Square. A low RMSE and a high R-square are considered the best fit for the exercise.  
 
 ## k-Nearest Neighbour (kNN)
 
@@ -195,8 +195,8 @@ From the plot above, the algorithm picked $k=4$ as the best tune. From the plot,
 
 ## Neural Network
 
-First I give the algorithm a grid of *size* and *decay* to look over. This is to give some direction to the algorithm and to make sure I get global optimum. The values chosen for the size and decay are widely practiced in the literature. 
-*Size* is the nuber of units hidden layers and *Decay* is the regularization parameter to avoid over-fitting.
+First I give the algorithm a grid of *size* and *decay* to look over. This is to give some direction to the algorithm and to make sure I get the global optimum. The values chosen for the size and decay are widely practiced in the literature. 
+*Size* is the number of hidden layers and *Decay* is the regularization parameter to avoid over-fitting.
 
 ```{r eval= FALSE}
 
@@ -227,7 +227,7 @@ The lowest RMSE is attained for *size=5* and *decay=0.5*.
 
 ## Multiple Linear Regression (MLR)
 
-There is no tuning for MLR. However, the best tune provided under cross validation would be either intercept or no-intercept.
+There is no tuning for MLR. However, the best tune provided under cross-validation would be either intercept or no-intercept.
 
 ```{r eval= FALSE}
 
@@ -262,11 +262,11 @@ TRUE  & 186853.2 & 0.7581584 & 106488.8 \\
 
 ## Random Forest (RF)
 
-For random forest algorithm, I must provide the design matrix. This is because, I have factor variables in the data and I need a seperate column for them.
+For the random forest algorithm, I must provide the design matrix. This is because I have factor variables in the data and I need a separate column for them.
 
-In the random forest model, the original training data is randomly sampled-with-replacement generating small subsets of data. These subsets are widely known as bootstrap samples. For tune grid I provide *mtry*, which is number of variables randomly sampled as candidates at each split. I also provide *ntree*, which is basically telling the model the number of trees to grow. Instead of repeated cross validation I use \textbf{Out Of Bag} (OOB) which is a method to validate the random forest model.
+In the random forest model, the original training data is randomly sampled with replacement generating small subsets of data. These subsets are widely known as bootstrap samples. For the tune grid, I provide *mtry*, which is the number of variables randomly sampled as candidates at each split. I also provide *ntree*, which is basically telling the model the number of trees to grow. Instead of repeated cross-validation, I use \textbf{Out Of Bag} (OOB) which is a method to validate the random forest model.
 
-At each bootstrap, the algorithm leaves out some rows and trains with left over data. Once the training is finished, the model is fed the left out rows and asks to predict the outcome. This is repeated multiple times and OOB score is computed by simply adding up the number of correctly predicted rows. We can also use repeated CV as well. However, OOB is a well known method and is recognized well in the literature.
+At each bootstrap, the algorithm leaves out some rows and trains with leftover data. Once the training is finished, the model is fed the left out rows and asked to predict the outcome. This is repeated multiple times and the OOB score is computed by simply adding up the number of correctly predicted rows. We can also use a repeated CV as well. However, OOB is a well known method and is recognized well in the literature.
 
 ```{r eval= FALSE}
 
@@ -292,7 +292,7 @@ Under *mtry=38*, the model achieved the lowest RMSE.
 
 ## Decision Tree
 
-I specify the grid of complexity parameter (cp) for tuning. It is a stopping parameter. It simply helps speed up the search for splits, it identifies the splits that don't meet the specified critetia and prune those splits before going deep.
+I specify the grid of complexity parameter (cp) for tuning. It is a stopping parameter. It simply helps speed up the search for splits, it identifies the splits that don't meet the specified criteria and prune those splits before going deep.
 
 
 ```{r eval= FALSE}
@@ -325,11 +325,11 @@ fittedModelPlot <- rpart.plot(fit.model, main = "Fitted Model")
 \end{figure}
 
 
-Now we get into the state of the art supervised learning models widely used. These are mostly used in almost every machine learning competitions, data science competitions, and also in most of the businesses. 
+Now we get into the state-of-the-art supervised learning models widely used. These are mostly used in almost every machine learning competition, data science competition, and also in most businesses.  
 
 ## Gradient Boosting Machine (GBM)
 
-By combining predictions from multiple decision trees, a GBM generates the final predictions. The tune grid for GBM contain number of trees; interaction depth which is number of leaves; shrinkage which is learning rate; minimum observations in a node which is minumum number of observations at the terminal node of the tree. This algorithm will take some time to execute. 
+By combining predictions from multiple decision trees, a GBM generates the final predictions. The tune grid for GBM contains the number of trees; interaction depth which is the number of leaves; shrinkage which is the learning rate; minimum observations in a node which is the minimum number of observations at the terminal node of the tree. This algorithm will take some time to execute. 
 
 ```{r eval= FALSE}
 
@@ -367,7 +367,7 @@ A minimum RMSE is achieved under 180 trees, 5 leaves for each tree, shrinkage of
 
 ## Extreme Gradient Boosting Machine (XGBoost)
 
-XGBoost is another state of the art, popular boosting algorithm. This is an advanced improved version of the simple GBM. The algorithm of XGBoost is similar to GBM but with sequential tree building and correcting the errors made by the previous trees.
+XGBoost is another state-of-the-art, popular boosting algorithm. This is an advanced improved version of the simple GBM. The algorithm of XGBoost is similar to GBM but with sequential tree building and correcting the errors made by the previous trees.
 
 
 ```{r eval= FALSE}
@@ -408,13 +408,13 @@ plot(xgbTune_housePrice)
   \includegraphics[width=1\linewidth]{tunePlots/xgbBestTunePlot.jpeg}
 \end{figure}
 
-Least RMSE is achived under nrounds = 150, max_depth = 3, $\eta$ = 0.3, $\gamma$ = 0, colsample_bytree = 0.8, min_child_weight = 1, and subsample = 1. One could argue that hyperparameters $\gamma$ and *min_child_weight* are kept constant and I could improve the prediction by changing them. Yes, I could change them but for simplicity I use a constant value for them.
+The minimum RMSE is achieved with nrounds = 150, max_depth = 3, $\eta$ = 0.3, $\gamma$ = 0, colsample_bytree = 0.8, min_child_weight = 1, and subsample = 1. One could argue that the $\gamma$ and *min_child_weight* hyperparameters are kept constant and you could improve the prediction by changing them. Yes, you could change them, but for the sake of simplicity, I'll use a constant value for them. 
 
-Now we get into not so well known supervised learning models. These are not discussed a lot in the community. There is nothing wrong with them. Perhaps they are not discussed a lot because of non-fancy names (:-D). My goal is to learn about different learning models. So I provide them in this exercise.
+Now we come to the not so well known supervised learning models. These are not discussed much in the community. There's nothing wrong with them. Maybe because of their simple names (:D) they are not discussed much. My goal is to get to know different learning models. Therefore I make them available in this exercise.
 
 ## Elastic Net (ENet)
 
-This method is similar to lasso and ridge regression. In fact, this is a combination of lasso and ridge regression. $\alpha$ and $\lambda$ which are the penalty parameters of lasso and ridge regression respectively are passed as grid in the modeling.
+This method is similar to lasso and ridge regression. In fact, this is a combination of lasso and ridge regression. $\alpha$ and $\lambda$ which are the penalty parameters of lasso and ridge regression respectively are passed as the grid in the modeling.
 
 ```{r eval= FALSE}
 
@@ -513,7 +513,7 @@ plot(plsTune_housePrice)
 
 # Prediction plots of the above fitted models
 
-Now to see how the above supervised learning models performed, I predict the training set price with the fitted models. I argue that it is okay to predict the same training price with the model built on the same data.^[All the model are fit either by repeated cross validation or with out of bag methods.] I perform this small exercise to visualize the model performance and later select the models for stacking purpose (stacking is explained in next subsequent sections).
+Now to see how the above-supervised learning models performed, I predict the training set price with the fitted models. I argue that it is okay to predict the same training price with the model built on the same data.^[All the models are fit either by repeated cross-validation or with out-of-bag methods.] I perform this small exercise to visualize the model performance and later select the models for stacking purposes (stacking is explained in the next subsequent sections).
 
 ## k-Nearest Neighbour Prediction
 
@@ -588,7 +588,7 @@ Now to see how the above supervised learning models performed, I predict the tra
 
 # Stacking
 
-Stacking is one of the ensamble methods that has become popular in the recent years and became a go to method to use for any supervised learning methods. Simply put, it uses meta-learning algorithm to combine and learn from different base learning models. Base learning models include all the methods I provided above. I use stacking to improve and increase my predictive power. First, I pick the base models to include in the meta-learning algorithm. I have be extra careful when picking the base learning models. I simply cannot use all the above methods. From the prediction plots above it is apparant that some base models are very poor in predicting the house prices. So using them in the meta-learning algorithm is not ideal. Along with the prediction plots, I also use other metrics such as Root Mean Squared Error (RMSE) and R-squared to pick the base models. A linear relationship in the above plots, a low RMSE, and a high R-squared are used to pick the base models for meta-learning. By carefully analyzing the metrics, I picked: Extreme Gradient Boosting Machine (XGBoost), Random Forest (RF), gradient Gradient Boosting Machine (GBM), and k-Nearest Neighbour (kNN) for meta-learning.
+Stacking is one of the ensemble methods that has become popular in recent years and became a go-to method to use for any supervised learning method. Simply put, it uses a meta-learning algorithm to combine and learn from different base learning models. Base learning models include all the methods I provided above. I use stacking to improve and increase my predictive power. First, I pick the base models to include in the meta-learning algorithm. I have to be extra careful when picking the base learning models. I simply cannot use all the above methods. From the prediction plots above it is apparent that some base models are very poor in predicting the house prices. So using them in the meta-learning algorithm is not ideal. Along with the prediction plots, I also use other metrics such as Root Mean Squared Error (RMSE) and R-squared to pick the base models. A linear relationship in the above plots, a low RMSE, and a high R-squared are used to pick the base models for meta-learning. By carefully analyzing the metrics, I picked: Extreme Gradient Boosting Machine (XGBoost), Random Forest (RF), gradient Gradient Boosting Machine (GBM), and k-Nearest Neighbour (kNN) for meta-learning.
 
 Before jumping into meta-learning, I get the best tune of the base methods and arrange them.
 
@@ -645,7 +645,7 @@ for (j in 1:length(method_meta)){
 
 ```
 
-Now I use *metaPred2* (which contains predictions from base models with best tune), to fit another base model. I use linear regression model (OLS), RF, and kNN to get the weights and best tunes. 
+Now I use *metaPred2* (which contains predictions from base models with the best tune), to fit another base model. I use a linear regression model (OLS), RF, and kNN to get the weights and best tunes.
 
 ```{r eval=FALSE}
 
@@ -687,10 +687,10 @@ plot(emfit2_kNN)
 
 From the above best tune plots the lowest RMSE is achieved for *mtry=9* and *k=3* for RF and kNN respectively.
 
-Finally I perform the following procedure to get the meta-algorithm prediction:
-1. Use the corfficients from linear regression model as weights on the predictions of base models to predict the first meta price.
-2. Use the best tune from kNN meta model on the predictions of base models and the meta prediction in step 1.
-3. Use the best tune from RF meta model on the predictions of base models, the meta prediction in step 1, and the meta prediction in step 2.
+Finally, I perform the following procedure to get the meta-algorithm prediction:
+1. Use the coefficients from the linear regression model as weights on the predictions of base models to predict the first meta price.
+2. Use the best tune from kNN meta-model on the predictions of base models and the meta prediction in step 1.
+3. Use the best tune from RF meta-model on the predictions of base models, the meta prediction in step 1, and the meta prediction in step 2. 
 
 The following code snippet is used perform the above procedure and arrange the predictions in a dataframe.
 
@@ -710,7 +710,7 @@ colnames(metaStack1)[5:6]<- c("enOLS","enKNN")
 metaStack1$enRF <- predict(emfit2_RF, as.data.frame(metaPred11))
 ```
 
-*metaStack1* contains the predictions from the base models and meta models. Below, I provide the plots similar to the base model prediction.
+*metaStack1* contains the predictions from the base models and meta models. Below, I provide plots similar to the base model prediction.
 
 
 ## OLS Stacked Prediction
@@ -757,7 +757,7 @@ metaStack %>% head()
 
 *metaStack* contains the price predicted from the supervised learning models. 
 
-The following code snippet writes the predicted price in *.csv* file and saves them in the current directory.^[One can always give specific directory name to save the file. In order to do that first a local directory must be created and must be passed in *write.csv* function.] 
+The following code snippet writes the predicted price in *.csv* file and saves them in the current directory.^[One can always give a specific directory name to save the file. In order to do that first a local directory must be created and must be passed in *write.csv* function.] 
 
 ```{r eval= FALSE}
 
@@ -772,7 +772,7 @@ write.csv(testPredictedHousePrice,file="testPredictedHousePrice.csv")
 
 # Conclusion
 
-In this project I used several supervised learning methods to analyze and predict the house prices based on the characteristics of the house. Extreme Gradient Boosting Machine, Random Forest, Gradient Boosting Machine , and k Nearest Neighbours are some of the base models that perfom better in terms of RMSE, R-squared, and linear relationship between the predicted and tested price. Using the best base models I implement meta-learning algorithm (stacking) by using Ordinary Least Squares, k Nearest Neighbours, and Random Forest. Stacking improved the predictive power and gave me good results (evident from the plots I provided). Finally I use the best tunes of the base models and meta-models to predict the house price using the house characteristics in the test data.
+In this project, I used several supervised learning methods to analyze and predict house prices based on the characteristics of the house. Extreme Gradient Boosting Machine, Random Forest, Gradient Boosting Machine, and k Nearest Neighbours are some of the base models that perform better in terms of RMSE, R-squared, and linear relationship between the predicted and tested price. Using the best base models I implement a meta-learning algorithm (stacking) by using Ordinary Least Squares, k Nearest Neighbours, and Random Forest. Stacking improved the predictive power and gave me good results (evident from the plots I provided). Finally, I use the best tunes of the base models and meta-models to predict the house price using the house characteristics in the test data.
 
 
 

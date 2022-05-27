@@ -1,5 +1,5 @@
 ---
-title: "Supervised Learning - Analysis and prediction of house prices"
+title: "Name the Price : Analysis and Prediction of House Prices with Supervised Learning"
 author: "Dinesh R Poddaturi"
 output:
   pdf_document:
