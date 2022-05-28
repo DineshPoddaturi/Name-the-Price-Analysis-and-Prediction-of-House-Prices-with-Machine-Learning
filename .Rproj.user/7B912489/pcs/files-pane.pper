@@ -1,13 +1,13 @@
 {
-    "path" : "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices",
-    "sortOrder" : [
+    "path": "/Users/Dinesh/Dinesh/Machine-Learning-Project-House-Prices",
+    "sortOrder": [
         {
-            "ascending" : false,
-            "columnIndex" : 4
+            "columnIndex": 4,
+            "ascending": false
         },
         {
-            "ascending" : true,
-            "columnIndex" : 2
+            "columnIndex": 2,
+            "ascending": true
         }
     ]
 }
