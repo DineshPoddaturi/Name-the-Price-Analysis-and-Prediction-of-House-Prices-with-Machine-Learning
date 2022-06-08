@@ -702,6 +702,24 @@ KNN_prediction_plot_stack <- ggplot(data=KNN_housePriceStack,aes(x=train_housePr
   scale_y_continuous(name="Predicted House Price (in Million $)") + ggtitle("Train vs KNN Stacked Predicted House Price")
 
 
+allStacked <- cbind(cbind(RF_housePriceStack, KNN_housePriceStack %>% select(KNN_housePriceStack)), 
+                    OLS_housePriceStack %>% select(OLS_housePriceStack)) %>% as.data.frame()
+allStacked <- allStacked %>% select(train_housePrice, RF_housePriceStack, OLS_housePriceStack, KNN_housePriceStack)
+
+allStacked %>% ggplot(aes(x=train_housePrice, y = RF_housePriceStack)) + geom_jitter() + 
+  geom_smooth(aes(colour = 'RF_housePriceStack'),se = F) + 
+  geom_smooth(aes(y = OLS_housePriceStack, colour = 'OLS_housePriceStack'),se = F) + 
+  geom_smooth(aes(y = KNN_housePriceStack, colour = 'KNN_housePriceStack'),se = F) + 
+  scale_colour_discrete(name = 'Line',breaks = c('RF_housePriceStack','OLS_housePriceStack','KNN_housePriceStack'), 
+                        labels = c('RF Meta','OLS Meta', 'KNN Meta'))+
+  scale_x_continuous(name = "Train House Price (in Million $)") + 
+  scale_y_continuous(name="Predicted House Price (in Million $)") + 
+  ggtitle("Train vs Meta Predicted House Price") + theme_classic() + 
+  theme(legend.text = element_text(margin = margin(r = 30, unit = "pt")), 
+        legend.title=element_blank(), plot.title = element_text(hjust = 0.5)) + theme(legend.position = c(0.8, 0.2))
+  
+
+
 
 
 names(metaStack) <- c("priceXGB", "priceRF", "priceGBM", 
