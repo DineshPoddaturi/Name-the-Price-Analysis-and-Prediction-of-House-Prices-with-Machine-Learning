@@ -1,7 +1,7 @@
 
 # Introduction
 
-In this project, I use multiple supervised learning methods to carefully analyze and predict house prices. Originally this project was a part of the Kaggle data science competition. Although I didn't win the competition, I learned a lot during and after the competition. I believe in the mantra "learning by doing" (coined by a famous American philosopher \textit{John Dewey}). So I have been working on this project by making multiple changes, trying different algorithms, and eventually improving my modeling techniques and prediction power.
+In this project, I use multiple supervised learning methods to carefully analyze and predict house prices. Originally this project was a part of the Kaggle data science competition. I learned a lot during and after the competition. I believe in the mantra "learning by doing" (coined by the famous American philosopher \textit{John Dewey}). So I have been working on this project by making multiple changes, trying different algorithms, and eventually improving my modeling techniques and prediction power.
 
 # Data
 
