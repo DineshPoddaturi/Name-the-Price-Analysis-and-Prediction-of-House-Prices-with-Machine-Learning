@@ -4,4 +4,4 @@ This repo contains the code and analysis of my machine learning project. The ana
 
 SupervisedLearning.R contains the code of the project.
 
-Name the Price : Analysis and Prediction of House Prices with Supervised Learning.pdf contains the report of the project.
+Name the Price : Analysis and Prediction of House Prices with Machine Learning.pdf contains the report of the project.
