@@ -1,5 +1,5 @@
 ---
-title: "Name the Price : Analysis and Prediction of House Prices with Machine Learning"
+title: "Name the Price: Analysis and Prediction of House Prices with Machine Learning"
 author: "Dinesh R Poddaturi"
 output:
   pdf_document:
