@@ -64,14 +64,14 @@ impVar_lm
 ### important variables. However, all the other variables seem important too. 
 
 # I am using XG boost to further analyze variable importance 
-# designX <- train_data %>% select(-price)
-# xgBoost_fit <- xgboost(data.matrix(designX), train_data$price, nrounds=800)
-# xgBoost_Imp <- xgb.importance(model = xgBoost_fit, feature_names = names(designX))
-# xgBoost_Imp
+designX <- train_data %>% select(-price)
+xgBoost_fit <- xgboost(data.matrix(designX), train_data$price, nrounds=800)
+xgBoost_Imp <- xgb.importance(model = xgBoost_fit, feature_names = names(designX))
+xgBoost_Imp
 ### The XG boost selectd sqft_living, grade, lat, long, sqft_living15, yr_built, and waterfront as the 
 ### most important variables
 # xgBoost_Imp
-# Feature        Gain       Cover   Frequency
+#         Feature        Gain       Cover   Frequency
 # 1:   sqft_living 0.342766579 0.080952848 0.105720569
 # 2:         grade 0.281494710 0.016340344 0.020216740
 # 3:           lat 0.154047844 0.161911073 0.121803874
@@ -150,11 +150,6 @@ house_test$waterfront <- as.factor(house_test$waterfront)
 house_test$condition <- as.factor(house_test$condition)
 house_test <- house_test %>% select(-sqft_above, -sqft_basement, -sqft_living, -sqft_lot)
 
-
-
-
-
-
 ########################################################################################################
 ####################################### USING K NEAREST NEIGHBOURS #####################################
 ########################################################################################################
@@ -219,7 +214,6 @@ lmResults <- lmTune_housePrice$results
 ####################################### USING RANDOM FOREST ############################################
 ########################################################################################################
 
-
 designMat <- model.matrix(lm(housePrice~.,data=house_train))
 designMatRF <- designMat[,-1]
 
@@ -232,11 +226,11 @@ forestTune_housePrice <- train(y = house_train[,1], x = designMatRF,
 # These subsets are also known as bootstrap samples.
 # mtry: Number of variables randomly sampled as candidates at each split.
 # ntree: Number of trees to grow.
-# oob: Out Of Bag is a method to validate the ranndom forest model. 
+# OOB: Out Of Bag is a method to validate the random forest model. 
 # At each bootstrap, the algorithm leaves out some rows and trains with kept data. Once the training is finished, the model is 
-# fed the left out rows and asks to predict the outcome. This is repeated multiple times and oob score is computed by simply adding
+# fed the left out rows and asks to predict the outcome. This is repeated multiple times and OOB score is computed by simply adding
 # up the number of correctly predicted rows. 
-# We can also use repeated CV as well. However, OOB is a well known method and is recognized well. 
+# We can also use repeated CV as well. However, OOB is a well known method and is recognized in the machine learning community. 
 
 plot(forestTune_housePrice)
 
@@ -562,11 +556,11 @@ PLS_prediction_plot <- ggplot(data = plsPrediction, aes(x = train_housePrice,
 ############################################# STACKING #################################################
 ########################################################################################################
 
-### It is clear from the above plots eXtreme Gradiant Boosting (XGB), Random Forest, 
-### Gradiant Boosting Method (GBM), and K Nearest Neighbours Perform well in predicting the house prices
+### It is clear from the above plots eXtreme Gradient Boosting (XGB), Random Forest, 
+### Gradient Boosting Method (GBM), and K Nearest Neighbours Perform well in predicting the house prices
 ### in that order. 
 
-#### Now for better performance I am going to use ensamble methods to combine all the models to create 
+#### Now for better performance I am going to use ensemble methods to combine all the models to create 
 #### a meta-model. Specifically I use Stacking to create a meta-model.
 
 ### First I get the best tune from the above mentioned models
@@ -591,19 +585,6 @@ train <- house_train
 test <- house_test
 
 for (j in 1:length(method_meta)){
-  
-  # j <- 1
-  
-  # if(method_meta[j] %in% c("xgbTree", "rf")){
-  #   
-  #   designMat <- model.matrix(lm(house_train$housePrice~.,data=house_train))
-  #   designMat <- designMat[,-1]
-  #   
-  # } else if (method_meta[j] %in% c("gbm", "knn")){
-  #   
-  #   designMat <- house_train[,-1]
-  #   
-  # }
   
   modelfit <- train(housePrice~.,
                     data  = house_train,
@@ -717,9 +698,6 @@ allStacked %>% ggplot(aes(x=train_housePrice, y = RF_housePriceStack)) + geom_ji
   ggtitle("Train vs Meta Predicted House Price") + theme_classic() + 
   theme(legend.text = element_text(margin = margin(r = 30, unit = "pt")), 
         legend.title=element_blank(), plot.title = element_text(hjust = 0.5)) + theme(legend.position = c(0.8, 0.2))
-  
-
-
 
 
 names(metaStack) <- c("priceXGB", "priceRF", "priceGBM", 
@@ -735,6 +713,8 @@ testPredictedHousePriceXGB <- testPredictedHousePrice %>% select(-priceRF, - pri
 
 
 write.csv(testPredictedHousePrice,file="testPredictedHousePrice.csv")
+
+
 
 
 
